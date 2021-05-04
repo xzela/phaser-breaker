@@ -2,10 +2,12 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 8080;
-// const phaser = require('phaser/dist/phaser');
+// const phaser = require('phaser');
 // sendFile will go here
-
+// console.log(phaser);
 app.use('/assets', express.static('public/assets'));
+app.use('/js', express.static('public/js'));
+
 // app.use('/phaser.js', phaser);
 app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, '/index.html'));

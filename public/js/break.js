@@ -6,7 +6,7 @@ const config = {
 	physics: {
 		default: 'arcade',
 		arcade: {
-			gravity: { y: 300 },
+			// gravity: { y: 300 },
 			debug: false,
 		},
 	},
@@ -17,121 +17,51 @@ const config = {
 	},
 };
 
-let platforms;
-let player;
-let cursors;
-let stars;
-let score = 0;
-let scoreText;
-let bombs;
-let gameOver;
-
 const game = new Phaser.Game(config);
+
+let ball;
+let paddle;
+let cursor;
+
+let velocityX = Phaser.Math.Between(-100, 100);
+let velocityY = 100;
 
 function preload() {
 	this.load.image('sky', 'assets/sky.png');
-	this.load.image('ground', 'assets/platform.png');
-	this.load.image('star', 'assets/star.png');
-	this.load.image('bomb', 'assets/bomb.png');
-	this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+	this.load.image('paddle', 'assets/platform.png');
+	this.load.image('ball', 'assets/bomb.png');
 }
 
 function create() {
-
 	this.add.image(400, 300, 'sky');
-	platforms = this.physics.add.staticGroup();
-	platforms.create(300, 568, 'ground').setScale(2).refreshBody();
-	platforms.create(600, 400, 'ground');
-	platforms.create(50, 250, 'ground');
-	platforms.create(750, 220, 'ground');
+	ball = this.physics.add.sprite(50, 50, 'ball');
+	paddle = this.physics.add.sprite(game.config.width / 2, game.config.height * .95, 'paddle').setScale(.5);
+	paddle.setCollideWorldBounds(true);
+	cursor = this.input.keyboard.createCursorKeys();
 
-	stars = this.physics.add.group({
-		key: 'star',
-		repeat: 11,
-		setXY: { x: 12, y: 0, stepX: 70 },
-	});
+	ball.setVelocity(velocityX, velocityY);
+	ball.setBounce(1);
+	ball.setCollideWorldBounds(true);
 
-	bombs = this.physics.add.group();
-
-	stars.children.iterate( child => {
-		child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-	});
-
-	player = this.physics.add.sprite(110, 400, 'dude');
-	player.setBounce(0.2);
-	player.setCollideWorldBounds(false);
-	this.anims.create({
-		key: 'left',
-		frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3}),
-		frameRate: 10,
-		repeat: -1,
-	});
-	this.anims.create({
-		key: 'turn',
-		frames: [ { key: 'dude', frame: 4 } ],
-		frameRate: 20,
-	});
-	this.anims.create({
-		key: 'right',
-		frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
-		frameRate: 10,
-		repeat: -1,
-	});
-
-	cursors = this.input.keyboard.createCursorKeys();
-	scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000' });
-
-	// colliders go here
-	this.physics.add.collider(player, platforms);
-	this.physics.add.collider(stars, platforms);
-	this.physics.add.collider(bombs, platforms);
-
-	//
-	this.physics.add.collider(player, bombs, hitBomb, null, this);
-	this.physics.add.overlap(player, stars, collectStar, null, this);
+	this.physics.add.collider(ball, paddle, hitPaddle, null, this);
 }
 
 function update() {
-	if (cursors.left.isDown) {
-		player.setVelocityX(-160);
-		player.anims.play('left', true);
-	} else if (cursors.right.isDown) {
-		player.setVelocityX(160);
-		player.anims.play('right', true);
+	if (cursor.left.isDown) {
+		paddle.setVelocityX(-160);
+	} else if (cursor.right.isDown) {
+		paddle.setVelocityX(160);
 	} else {
-		player.setVelocityX(0);
-		player.anims.play('turn');
-	}
-
-	if (cursors.up.isDown && player.body.touching.down) {
-		player.setVelocityY(-330);
-	}
-
-	this.physics.world.wrap(player, 32);
-}
-
-function collectStar(player, star) {
-	star.disableBody(true, true);
-
-	score += 10;
-	scoreText.setText(`Score: ${score}`);
-
-	if (stars.countActive(true) === 0) {
-		stars.children.iterate(child => {
-			child.enableBody(true, child.x, 0, true, true);
-		});
-		const x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
-		const bomb = bombs.create(x, 16, 'bomb');
-		bomb.setBounce(1);
-		bomb.setCollideWorldBounds(true);
-		bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+		paddle.setVelocityX(0);
 	}
 }
 
-function hitBomb(player, bomb) {
-	this.physics.pause();
-
-	player.setTint(0xFF0000);
-	player.anims.play('turn');
-	gameOver = true;
+function hitPaddle(_ball, _player) {
+	velocityY = (velocityY + 50) * -1;
+	if (velocityX < 0) {
+		velocityX = velocityX * -1;
+	}
+	_ball.setVelocity(velocityX, velocityY);
+	_player.setVelocityY(0);
+	_player.setVelocityX(0);
 }

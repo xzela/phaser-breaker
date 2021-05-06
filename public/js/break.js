@@ -25,8 +25,8 @@ let cursor;
 let textX;
 let textY;
 
-let velocityX = Phaser.Math.Between(-100, 100);
-let velocityY = 200;
+const velocityX = Phaser.Math.Between(-100, 100);
+const velocityY = 200;
 
 function preload() {
 	this.load.image('sky', 'assets/sky.png');
@@ -38,7 +38,7 @@ function create() {
 	const style = {
 		fill: '#000',
 	};
-
+	this.physics.world.checkCollision.down = false;
 	this.add.image(400, 300, 'sky');
 
 	ball = this.physics.add.sprite(50, 50, 'ball');
@@ -54,6 +54,7 @@ function create() {
 
 	textX = this.add.text(0, 0, `X: ${ball.x}`, style);
 	textY = this.add.text(0, 13, `Y: ${ball.y}`, style);
+	ball.body.checkWorldBounds(true);
 }
 
 function update() {
@@ -62,29 +63,30 @@ function update() {
 	textX.x = ball.x;
 	textX.y = ball.y;
 	if (cursor.left.isDown) {
-		paddle.setVelocityX(-160);
+		paddle.setVelocityX(-260);
 	} else if (cursor.right.isDown) {
-		paddle.setVelocityX(160);
+		paddle.setVelocityX(260);
 	} else {
 		paddle.setVelocityX(0);
 	}
 }
 
 function hitPaddle(_ball, _player) {
-	console.log(_ball, _player);
-	velocityY = (velocityY + 50) * -1;
-	if (velocityX < 0) {
-		velocityX = velocityX * -1;
-	}
+	// console.log(_ball, _player);
+	// velocityY = (velocityY + 50) * -1;
+	// if (velocityX < 0) {
+	// 	velocityX = velocityX * -1;
+	// }
 
-	if (_player.body.velocity.x !== 0) {
-		if (velocityX < 0) {
-			velocityX = velocityX - 50;
-		} else {
-			velocityX = velocityX + 50;
-		}
-	}
-	_ball.setVelocity(velocityX, velocityY);
+	// if (_player.body.velocity.x !== 0) {
+	// 	if (velocityX < 0) {
+	// 		velocityX = velocityX - 50;
+	// 	} else {
+	// 		velocityX = velocityX + 50;
+	// 	}
+	// }
+	_ball.setVelocityX( -1 * 2 * (_player.x - _ball.x));
+	// _ball.setVelocity(velocityX, velocityY);
 	_player.setVelocityY(0);
 	_player.setVelocityX(0);
 }
